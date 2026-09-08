@@ -1,0 +1,1184 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Sport Nutrition Tracker</title>
+  <style>
+    :root {
+      --primary: #2ECC71;
+      --primary-dark: #27AE60;
+      --secondary: #3498DB;
+      --danger: #E74C3C;
+      --warning: #F39C12;
+      --bg: #F0F4F8;
+      --card: #FFFFFF;
+      --text: #2C3E50;
+      --text-light: #7F8C8D;
+      --border: #E0E6ED;
+      --shadow: 0 2px 12px rgba(0,0,0,0.08);
+      --radius: 16px;
+      --radius-sm: 10px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding-bottom: 80px;
+    }
+
+    /* ── NAV ── */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: var(--card);
+      border-top: 1px solid var(--border);
+      display: flex;
+      z-index: 100;
+      box-shadow: 0 -2px 12px rgba(0,0,0,0.08);
+    }
+    .nav-btn {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 4px 12px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-light);
+      font-size: 11px;
+      gap: 4px;
+      transition: color 0.2s;
+    }
+    .nav-btn.active { color: var(--primary); }
+    .nav-btn svg { width: 24px; height: 24px; }
+
+    /* ── PAGES ── */
+    .page { display: none; padding: 16px; }
+    .page.active { display: block; }
+
+    /* ── HEADER ── */
+    .page-header {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+
+    /* ── CARDS ── */
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow);
+    }
+
+    /* ── BUTTONS ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 14px 20px;
+      border-radius: var(--radius-sm);
+      border: none;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      width: 100%;
+    }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:active { background: var(--primary-dark); transform: scale(0.98); }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-secondary { background: var(--border); color: var(--text); }
+    .btn-sm {
+      padding: 8px 14px;
+      font-size: 13px;
+      width: auto;
+      border-radius: 8px;
+    }
+
+    /* ── TIMER ── */
+    .timer-display {
+      text-align: center;
+      padding: 24px 0 8px;
+    }
+    .timer-clock {
+      font-size: 56px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+    }
+    .timer-label {
+      font-size: 13px;
+      color: var(--text-light);
+      margin-top: 4px;
+    }
+    .next-reminder {
+      background: var(--primary);
+      color: #fff;
+      border-radius: var(--radius-sm);
+      padding: 10px 16px;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 600;
+      margin: 12px 0;
+    }
+
+    /* ── PROGRESS DOTS ── */
+    .intake-timeline {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .intake-dot {
+      background: var(--primary);
+      color: #fff;
+      border-radius: 20px;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* ── KATALOG ── */
+    .category-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+    .cat-tab {
+      padding: 8px 16px;
+      border-radius: 20px;
+      border: 2px solid var(--border);
+      background: var(--card);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      color: var(--text-light);
+      transition: all 0.2s;
+    }
+    .cat-tab.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    .product-card {
+      background: var(--card);
+      border-radius: var(--radius-sm);
+      padding: 14px;
+      margin-bottom: 10px;
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .product-icon {
+      font-size: 28px;
+      width: 44px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .product-info { flex: 1; min-width: 0; }
+    .product-name {
+      font-weight: 700;
+      font-size: 15px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .product-meta {
+      font-size: 12px;
+      color: var(--text-light);
+      margin-top: 2px;
+    }
+    .product-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 200;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--card);
+      border-radius: 24px 24px 0 0;
+      padding: 24px 20px 36px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      animation: slideUp 0.3s ease;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+    .modal-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .modal-handle {
+      width: 40px; height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      margin: 0 auto 16px;
+    }
+
+    /* ── FORM ── */
+    .form-group { margin-bottom: 14px; }
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-light);
+      margin-bottom: 6px;
+    }
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      padding: 12px 14px;
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 15px;
+      color: var(--text);
+      background: var(--bg);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      border-color: var(--primary);
+    }
+    .form-textarea { min-height: 80px; resize: vertical; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    /* ── VERLAUF ── */
+    .session-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow);
+    }
+    .session-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 10px;
+    }
+    .session-date { font-weight: 700; font-size: 15px; }
+    .session-duration {
+      font-size: 12px;
+      color: var(--text-light);
+      background: var(--bg);
+      padding: 3px 8px;
+      border-radius: 10px;
+    }
+    .session-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin: 10px 0;
+    }
+    .stat-box {
+      background: var(--bg);
+      border-radius: 10px;
+      padding: 8px 4px;
+      text-align: center;
+    }
+    .stat-value { font-size: 16px; font-weight: 700; color: var(--primary); }
+    .stat-unit { font-size: 10px; color: var(--text-light); }
+    .stat-label { font-size: 10px; color: var(--text-light); margin-top: 1px; }
+
+    .session-items {
+      font-size: 13px;
+      color: var(--text-light);
+      margin-top: 8px;
+    }
+    .session-comment {
+      font-size: 13px;
+      color: var(--text);
+      background: var(--bg);
+      border-radius: 8px;
+      padding: 8px 10px;
+      margin-top: 8px;
+      font-style: italic;
+    }
+
+    /* ── INTAKE SELECT ── */
+    .product-select-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 50vh;
+      overflow-y: auto;
+    }
+    .product-select-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border-radius: var(--radius-sm);
+      border: 2px solid var(--border);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .product-select-item.selected {
+      border-color: var(--primary);
+      background: #f0fdf4;
+    }
+    .product-select-item .product-icon { font-size: 24px; width: 36px; }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-80px);
+      background: var(--text);
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 30px;
+      font-size: 14px;
+      font-weight: 600;
+      z-index: 999;
+      transition: transform 0.3s ease;
+      white-space: nowrap;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ── EMPTY STATE ── */
+    .empty-state {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--text-light);
+    }
+    .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-state p { font-size: 15px; }
+
+    /* ── BADGE ── */
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .badge-gel { background: #FFF3CD; color: #856404; }
+    .badge-drink { background: #D1ECF1; color: #0C5460; }
+    .badge-bar { background: #D4EDDA; color: #155724; }
+
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 12px 0;
+    }
+
+    .active-indicator {
+      display: inline-block;
+      width: 10px; height: 10px;
+      background: var(--primary);
+      border-radius: 50%;
+      margin-right: 6px;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════
+     PAGE 1: AKTIVITÄT
+═══════════════════════════════════════════ -->
+<div id="page-aktivitaet" class="page active">
+  <div class="page-header">🏃 Aktivität</div>
+
+  <!-- Nicht aktiv -->
+  <div id="state-idle">
+    <div class="card" style="text-align:center; padding: 32px 20px;">
+      <div style="font-size:64px; margin-bottom:16px;">🚴</div>
+      <div style="font-size:18px; font-weight:700; margin-bottom:8px;">Bereit zum Start?</div>
+      <div style="font-size:14px; color:var(--text-light); margin-bottom:24px;">Starte deine Aktivität und tracke deine Ernährung.</div>
+      <button class="btn btn-primary" onclick="startActivity()">
+        <svg viewBox="0 0 24 24" fill="currentColor" style="width:20px;height:20px"><path d="M8 5v14l11-7z"/></svg>
+        Aktivität starten
+      </button>
+    </div>
+  </div>
+
+  <!-- Aktiv -->
+  <div id="state-active" style="display:none;">
+    <div class="card">
+      <div style="display:flex; align-items:center; font-size:13px; color:var(--primary); font-weight:600; margin-bottom:4px;">
+        <span class="active-indicator"></span> Aktivität läuft
+      </div>
+      <div class="timer-display">
+        <div class="timer-clock" id="timer-display">00:00:00</div>
+        <div class="timer-label">Gesamtdauer</div>
+      </div>
+      <div class="next-reminder" id="next-reminder-display">
+        ⏰ Nächste Erinnerung in 30:00
+      </div>
+      <button class="btn btn-primary" onclick="openIntakeModal()" style="margin-bottom:10px;">
+        ➕ Konsum erfassen
+      </button>
+      <button class="btn btn-danger" onclick="stopActivity()">
+        ⏹ Aktivität beenden
+      </button>
+    </div>
+
+    <div class="card">
+      <div style="font-weight:700; font-size:15px; margin-bottom:12px;">📊 Aktuelle Session</div>
+      <div class="session-stats" id="live-stats">
+        <div class="stat-box">
+          <div class="stat-value" id="live-kcal">0</div>
+          <div class="stat-unit">kcal</div>
+          <div class="stat-label">Kalorien</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-value" id="live-carbs">0g</div>
+          <div class="stat-unit">KH</div>
+          <div class="stat-label">Kohlenhydrate</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-value" id="live-sodium">0</div>
+          <div class="stat-unit">mg</div>
+          <div class="stat-label">Natrium</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-value" id="live-fluid">0</div>
+          <div class="stat-unit">ml</div>
+          <div class="stat-label">Flüssigkeit</div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div style="font-weight:600; font-size:13px; margin-bottom:8px; color:var(--text-light);">ERFASSTE EINNAHMEN</div>
+      <div class="intake-timeline" id="intake-timeline">
+        <div style="font-size:13px; color:var(--text-light);">Noch nichts erfasst</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PAGE 2: KATALOG
+═══════════════════════════════════════════ -->
+<div id="page-katalog" class="page">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+    <div class="page-header" style="margin-bottom:0;">📦 Katalog</div>
+    <button class="btn btn-primary btn-sm" onclick="openProductModal()">+ Neu</button>
+  </div>
+
+  <div class="category-tabs">
+    <button class="cat-tab active" onclick="filterCatalog('alle', this)">Alle</button>
+    <button class="cat-tab" onclick="filterCatalog('gel', this)">🍯 Gels</button>
+    <button class="cat-tab" onclick="filterCatalog('drink', this)">🥤 Getränke</button>
+    <button class="cat-tab" onclick="filterCatalog('bar', this)">🍫 Riegel</button>
+  </div>
+
+  <div id="product-list"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PAGE 3: VERLAUF
+═══════════════════════════════════════════ -->
+<div id="page-verlauf" class="page">
+  <div class="page-header">📋 Verlauf</div>
+  <div id="session-list"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     BOTTOM NAV
+═══════════════════════════════════════════ -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" onclick="showPage('aktivitaet', this)">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.49 5.48c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm-3.6 13.9l1-4.4 2.1 2v6h2v-7.5l-2.1-2 .6-3c1.3 1.5 3.3 2.5 5.5 2.5v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1l-5.2 2.2v4.7h2v-3.4l1.8-.7-1.6 8.1-4.9-1-.4 2 7 1.4z"/></svg>
+    Aktivität
+  </button>
+  <button class="nav-btn" onclick="showPage('katalog', this)">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z"/></svg>
+    Katalog
+  </button>
+  <button class="nav-btn" onclick="showPage('verlauf', this)">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
+    Verlauf
+  </button>
+</nav>
+
+<!-- ═══════════════════════════════════════════
+     MODAL: KONSUM ERFASSEN
+═══════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-intake">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Was hast du genommen?</div>
+    <div class="category-tabs" style="margin-bottom:12px;">
+      <button class="cat-tab active" onclick="filterIntakeList('alle', this)">Alle</button>
+      <button class="cat-tab" onclick="filterIntakeList('gel', this)">🍯 Gels</button>
+      <button class="cat-tab" onclick="filterIntakeList('drink', this)">🥤 Getränke</button>
+      <button class="cat-tab" onclick="filterIntakeList('bar', this)">🍫 Riegel</button>
+    </div>
+    <div class="product-select-list" id="intake-product-list"></div>
+    <div style="margin-top:16px;">
+      <button class="btn btn-primary" onclick="confirmIntake()">✓ Bestätigen</button>
+      <button class="btn btn-secondary" style="margin-top:8px;" onclick="closeModal('modal-intake')">Abbrechen</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     MODAL: PRODUKT HINZUFÜGEN / BEARBEITEN
+═══════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-product">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="product-modal-title">Produkt hinzufügen</div>
+    <input type="hidden" id="edit-product-id" />
+    <div class="form-group">
+      <label class="form-label">Name *</label>
+      <input class="form-input" id="p-name" placeholder="z.B. SIS Go Gel" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Kategorie *</label>
+      <select class="form-select" id="p-category">
+        <option value="gel">🍯 Gel</option>
+        <option value="drink">🥤 Getränk</option>
+        <option value="bar">🍫 Riegel</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Kalorien (kcal)</label>
+        <input class="form-input" id="p-kcal" type="number" placeholder="87" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Kohlenhydrate (g)</label>
+        <input class="form-input" id="p-carbs" type="number" placeholder="22" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Natrium (mg)</label>
+        <input class="form-input" id="p-sodium" type="number" placeholder="50" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Flüssigkeit (ml)</label>
+        <input class="form-input" id="p-fluid" type="number" placeholder="0" />
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notizen</label>
+      <input class="form-input" id="p-notes" placeholder="z.B. mit Koffein" />
+    </div>
+    <button class="btn btn-primary" onclick="saveProduct()">💾 Speichern</button>
+    <button class="btn btn-secondary" style="margin-top:8px;" onclick="closeModal('modal-product')">Abbrechen</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     MODAL: SESSION ABSCHLUSS
+═══════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-session-end">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🏁 Session beenden</div>
+    <div id="session-summary-preview"></div>
+    <div class="form-group" style="margin-top:16px;">
+      <label class="form-label">Kommentar (optional)</label>
+      <textarea class="form-textarea" id="session-comment" placeholder="Wie war die Einheit? Besonderheiten?"></textarea>
+    </div>
+    <button class="btn btn-primary" onclick="confirmStopActivity()">✓ Session speichern</button>
+    <button class="btn btn-secondary" style="margin-top:8px;" onclick="closeModal('modal-session-end')">Zurück</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     MODAL: SESSION DETAIL
+═══════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-session-detail">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="detail-title">Session Detail</div>
+    <div id="detail-content"></div>
+    <button class="btn btn-secondary" style="margin-top:16px;" onclick="closeModal('modal-session-detail')">Schliessen</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════
+
+const STORAGE_KEYS = {
+  products: 'snt_products',
+  sessions: 'snt_sessions'
+};
+
+const DUMMY_PRODUCTS = [
+  // GELS
+  { id: 'g1', name: 'SIS Go Energy Gel', category: 'gel', kcal: 87, carbs: 22, sodium: 11, fluid: 60, notes: 'Isotonisch' },
+  { id: 'g2', name: 'Maurten Gel 100', category: 'gel', kcal: 100, carbs: 25, sodium: 55, fluid: 40, notes: '' },
+  { id: 'g3', name: 'GU Energy Gel Koffein', category: 'gel', kcal: 100, carbs: 22, sodium: 55, fluid: 32, notes: '20mg Koffein' },
+  { id: 'g4', name: 'Powerbar PowerGel', category: 'gel', kcal: 108, carbs: 27, sodium: 200, fluid: 41, notes: 'Mit Natrium' },
+  { id: 'g5', name: 'Clif Shot Gel', category: 'gel', kcal: 90, carbs: 24, sodium: 50, fluid: 34, notes: 'Bio-Zutaten' },
+  // GETRÄNKE
+  { id: 'd1', name: 'Isostar Isotonic', category: 'drink', kcal: 150, carbs: 35, sodium: 420, fluid: 500, notes: 'Zitrone' },
+  { id: 'd2', name: 'Maurten Drink Mix 160', category: 'drink', kcal: 160, carbs: 40, sodium: 100, fluid: 500, notes: 'Hydrogel' },
+  { id: 'd3', name: 'SIS Go Electrolyte', category: 'drink', kcal: 136, carbs: 34, sodium: 410, fluid: 500, notes: 'Orange' },
+  { id: 'd4', name: 'Powerbar Isoactive', category: 'drink', kcal: 145, carbs: 36, sodium: 380, fluid: 500, notes: 'Waldbeere' },
+  { id: 'd5', name: 'Wasser', category: 'drink', kcal: 0, carbs: 0, sodium: 0, fluid: 500, notes: '' },
+  // RIEGEL
+  { id: 'b1', name: 'Powerbar Performance Bar', category: 'bar', kcal: 230, carbs: 45, sodium: 180, fluid: 0, notes: 'Schokolade' },
+  { id: 'b2', name: 'Clif Bar Hafer', category: 'bar', kcal: 250, carbs: 44, sodium: 150, fluid: 0, notes: 'Hafer & Honig' },
+  { id: 'b3', name: 'SIS Go Energy Bar', category: 'bar', kcal: 215, carbs: 43, sodium: 90, fluid: 0, notes: 'Beere' },
+  { id: 'b4', name: 'Larabar Dattel-Nuss', category: 'bar', kcal: 200, carbs: 30, sodium: 10, fluid: 0, notes: 'Natürlich' },
+  { id: 'b5', name: 'Powerbar Natural Energy', category: 'bar', kcal: 185, carbs: 38, sodium: 70, fluid: 0, notes: 'Aprikose' },
+];
+
+function loadProducts() {
+  const stored = localStorage.getItem(STORAGE_KEYS.products);
+  if (stored) return JSON.parse(stored);
+  localStorage.setItem(STORAGE_KEYS.products, JSON.stringify(DUMMY_PRODUCTS));
+  return DUMMY_PRODUCTS;
+}
+
+function saveProducts(products) {
+  localStorage.setItem(STORAGE_KEYS.products, JSON.stringify(products));
+}
+
+function loadSessions() {
+  const stored = localStorage.getItem(STORAGE_KEYS.sessions);
+  return stored ? JSON.parse(stored) : [];
+}
+
+function saveSessions(sessions) {
+  localStorage.setItem(STORAGE_KEYS.sessions, JSON.stringify(sessions));
+}
+
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+
+let state = {
+  isActive: false,
+  startTime: null,
+  timerInterval: null,
+  reminderInterval: null,
+  reminderSeconds: 30 * 60,
+  nextReminderIn: 30 * 60,
+  intakes: [],
+  selectedProductId: null,
+  currentFilter: 'alle',
+  editProductId: null
+};
+
+// ═══════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════
+
+function showPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  btn.classList.add('active');
+  if (name === 'katalog') renderCatalog('alle');
+  if (name === 'verlauf') renderSessions();
+}
+
+// ═══════════════════════════════════════════
+// ACTIVITY TIMER
+// ═══════════════════════════════════════════
+
+function startActivity() {
+  state.isActive = true;
+  state.startTime = Date.now();
+  state.intakes = [];
+  state.nextReminderIn = state.reminderSeconds;
+
+  document.getElementById('state-idle').style.display = 'none';
+  document.getElementById('state-active').style.display = 'block';
+
+  renderLiveStats();
+  renderIntakeTimeline();
+
+  state.timerInterval = setInterval(tickTimer, 1000);
+  state.reminderInterval = setInterval(tickReminder, 1000);
+
+  showToast('Aktivität gestartet! 🚀');
+}
+
+function tickTimer() {
+  const elapsed = Math.floor((Date.now() - state.startTime) / 1000);
+  document.getElementById('timer-display').textContent = formatDuration(elapsed);
+}
+
+function tickReminder() {
+  state.nextReminderIn--;
+  const m = Math.floor(state.nextReminderIn / 60);
+  const s = state.nextReminderIn % 60;
+  document.getElementById('next-reminder-display').textContent =
+    `⏰ Nächste Erinnerung in ${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+
+  if (state.nextReminderIn <= 0) {
+    triggerReminder();
+    state.nextReminderIn = state.reminderSeconds;
+  }
+}
+
+function triggerReminder() {
+  // Vibration
+  if (navigator.vibrate) navigator.vibrate([400, 200, 400]);
+  // Sound
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    [0, 0.3, 0.6].forEach(delay => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.value = 880;
+      gain.gain.setValueAtTime(0.3, ctx.currentTime + delay);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.25);
+      osc.start(ctx.currentTime + delay);
+      osc.stop(ctx.currentTime + delay + 0.25);
+    });
+  } catch(e) {}
+  showToast('⏰ Zeit für Ernährung!');
+  openIntakeModal();
+}
+
+function stopActivity() {
+  // Show summary modal
+  const summary = buildSummary();
+  document.getElementById('session-summary-preview').innerHTML = summary;
+  document.getElementById('session-comment').value = '';
+  openModal('modal-session-end');
+}
+
+function confirmStopActivity() {
+  clearInterval(state.timerInterval);
+  clearInterval(state.reminderInterval);
+
+  const elapsed = Math.floor((Date.now() - state.startTime) / 1000);
+  const comment = document.getElementById('session-comment').value.trim();
+
+  const totals = calcTotals();
+  const session = {
+    id: Date.now(),
+    date: new Date().toLocaleDateString('de-CH', { day:'2-digit', month:'2-digit', year:'numeric' }),
+    dateRaw: new Date().toISOString(),
+    duration: elapsed,
+    intakes: [...state.intakes],
+    totals,
+    comment
+  };
+
+  const sessions = loadSessions();
+  sessions.unshift(session);
+  saveSessions(sessions);
+
+  closeModal('modal-session-end');
+  document.getElementById('state-idle').style.display = 'block';
+  document.getElementById('state-active').style.display = 'none';
+  state.isActive = false;
+
+  showToast('Session gespeichert! ✅');
+}
+
+function buildSummary() {
+  const totals = calcTotals();
+  return `
+    <div class="session-stats">
+      <div class="stat-box">
+        <div class="stat-value">${totals.kcal}</div>
+        <div class="stat-unit">kcal</div>
+        <div class="stat-label">Kalorien</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value">${totals.carbs}g</div>
+        <div class="stat-unit">KH</div>
+        <div class="stat-label">Kohlenhydrate</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value">${totals.sodium}</div>
+        <div class="stat-unit">mg</div>
+        <div class="stat-label">Natrium</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value">${totals.fluid}</div>
+        <div class="stat-unit">ml</div>
+        <div class="stat-label">Flüssigkeit</div>
+      </div>
+    </div>
+    <div style="font-size:13px; color:var(--text-light); margin-top:8px;">
+      ${state.intakes.length} Einnahme(n) erfasst
+    </div>
+  `;
+}
+
+function calcTotals() {
+  return state.intakes.reduce((acc, item) => {
+    acc.kcal += item.kcal || 0;
+    acc.carbs += item.carbs || 0;
+    acc.sodium += item.sodium || 0;
+    acc.fluid += item.fluid || 0;
+    return acc;
+  }, { kcal: 0, carbs: 0, sodium: 0, fluid: 0 });
+}
+
+function renderLiveStats() {
+  const t = calcTotals();
+  document.getElementById('live-kcal').textContent = t.kcal;
+  document.getElementById('live-carbs').textContent = t.carbs + 'g';
+  document.getElementById('live-sodium').textContent = t.sodium;
+  document.getElementById('live-fluid').textContent = t.fluid;
+}
+
+function renderIntakeTimeline() {
+  const el = document.getElementById('intake-timeline');
+  if (state.intakes.length === 0) {
+    el.innerHTML = '<div style="font-size:13px; color:var(--text-light);">Noch nichts erfasst</div>';
+    return;
+  }
+  el.innerHTML = state.intakes.map(i =>
+    `<div class="intake-dot">${i.time} – ${i.name}</div>`
+  ).join('');
+}
+
+// ═══════════════════════════════════════════
+// INTAKE MODAL
+// ═══════════════════════════════════════════
+
+let intakeFilter = 'alle';
+
+function openIntakeModal() {
+  state.selectedProductId = null;
+  intakeFilter = 'alle';
+  renderIntakeProductList('alle');
+  // Reset tabs
+  document.querySelectorAll('#modal-intake .cat-tab').forEach((t,i) => t.classList.toggle('active', i===0));
+  openModal('modal-intake');
+}
+
+function filterIntakeList(cat, btn) {
+  intakeFilter = cat;
+  document.querySelectorAll('#modal-intake .cat-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderIntakeProductList(cat);
+}
+
+function renderIntakeProductList(filter) {
+  const products = loadProducts();
+  const filtered = filter === 'alle' ? products : products.filter(p => p.category === filter);
+  const el = document.getElementById('intake-product-list');
+  el.innerHTML = filtered.map(p => `
+    <div class="product-select-item ${state.selectedProductId === p.id ? 'selected' : ''}"
+         onclick="selectIntakeProduct('${p.id}')">
+      <div class="product-icon">${categoryIcon(p.category)}</div>
+      <div class="product-info">
+        <div class="product-name">${p.name}</div>
+        <div class="product-meta">${p.kcal} kcal · ${p.carbs}g KH · ${p.fluid > 0 ? p.fluid + 'ml' : 'kein Fluid'}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function selectIntakeProduct(id) {
+  state.selectedProductId = id;
+  renderIntakeProductList(intakeFilter);
+}
+
+function confirmIntake() {
+  if (!state.selectedProductId) {
+    showToast('Bitte ein Produkt auswählen');
+    return;
+  }
+  const products = loadProducts();
+  const product = products.find(p => p.id === state.selectedProductId);
+  if (!product) return;
+
+  const elapsed = Math.floor((Date.now() - state.startTime) / 1000);
+  const intake = {
+    ...product,
+    time: formatDuration(elapsed),
+    timestamp: Date.now()
+  };
+  state.intakes.push(intake);
+  renderLiveStats();
+  renderIntakeTimeline();
+  closeModal('modal-intake');
+  showToast(`${product.name} erfasst ✓`);
+}
+
+// ═══════════════════════════════════════════
+// KATALOG
+// ═══════════════════════════════════════════
+
+let catalogFilter = 'alle';
+
+function filterCatalog(cat, btn) {
+  catalogFilter = cat;
+  document.querySelectorAll('#page-katalog .cat-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderCatalog(cat);
+}
+
+function renderCatalog(filter) {
+  const products = loadProducts();
+  const filtered = filter === 'alle' ? products : products.filter(p => p.category === filter);
+  const el = document.getElementById('product-list');
+
+  if (filtered.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="icon">📦</div><p>Keine Produkte gefunden</p></div>`;
+    return;
+  }
+
+  el.innerHTML = filtered.map(p => `
+    <div class="product-card">
+      <div class="product-icon">${categoryIcon(p.category)}</div>
+      <div class="product-info">
+        <div class="product-name">${p.name}</div>
+        <div class="product-meta">
+          ${p.kcal} kcal · ${p.carbs}g KH · ${p.sodium}mg Na · ${p.fluid > 0 ? p.fluid + 'ml' : '–'}
+          ${p.notes ? ' · ' + p.notes : ''}
+        </div>
+      </div>
+      <div class="product-actions">
+        <button class="btn btn-secondary btn-sm" onclick="editProduct('${p.id}')">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}')">🗑</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openProductModal(id) {
+  state.editProductId = id || null;
+  document.getElementById('product-modal-title').textContent = id ? 'Produkt bearbeiten' : 'Produkt hinzufügen';
+  document.getElementById('edit-product-id').value = id || '';
+
+  if (id) {
+    const products = loadProducts();
+    const p = products.find(x => x.id === id);
+    if (p) {
+      document.getElementById('p-name').value = p.name;
+      document.getElementById('p-category').value = p.category;
+      document.getElementById('p-kcal').value = p.kcal;
+      document.getElementById('p-carbs').value = p.carbs;
+      document.getElementById('p-sodium').value = p.sodium;
+      document.getElementById('p-fluid').value = p.fluid;
+      document.getElementById('p-notes').value = p.notes;
+    }
+  } else {
+    ['p-name','p-kcal','p-carbs','p-sodium','p-fluid','p-notes'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('p-category').value = 'gel';
+  }
+  openModal('modal-product');
+}
+
+function editProduct(id) { openProductModal(id); }
+
+function saveProduct() {
+  const name = document.getElementById('p-name').value.trim();
+  if (!name) { showToast('Name ist erforderlich'); return; }
+
+  const products = loadProducts();
+  const editId = document.getElementById('edit-product-id').value;
+
+  const productData = {
+    name,
+    category: document.getElementById('p-category').value,
+    kcal: parseInt(document.getElementById('p-kcal').value) || 0,
+    carbs: parseInt(document.getElementById('p-carbs').value) || 0,
+    sodium: parseInt(document.getElementById('p-sodium').value) || 0,
+    fluid: parseInt(document.getElementById('p-fluid').value) || 0,
+    notes: document.getElementById('p-notes').value.trim()
+  };
+
+  if (editId) {
+    const idx = products.findIndex(p => p.id === editId);
+    if (idx !== -1) products[idx] = { ...products[idx], ...productData };
+  } else {
+    productData.id = 'p' + Date.now();
+    products.push(productData);
+  }
+
+  saveProducts(products);
+  closeModal('modal-product');
+  renderCatalog(catalogFilter);
+  showToast(editId ? 'Produkt aktualisiert ✓' : 'Produkt hinzugefügt ✓');
+}
+
+function deleteProduct(id) {
+  if (!confirm('Produkt wirklich löschen?')) return;
+  const products = loadProducts().filter(p => p.id !== id);
+  saveProducts(products);
+  renderCatalog(catalogFilter);
+  showToast('Produkt gelöscht');
+}
+
+// ═══════════════════════════════════════════
+// VERLAUF
+// ═══════════════════════════════════════════
+
+function renderSessions() {
+  const sessions = loadSessions();
+  const el = document.getElementById('session-list');
+
+  if (sessions.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="icon">📋</div><p>Noch keine Sessions gespeichert</p></div>`;
+    return;
+  }
+
+  el.innerHTML = sessions.map(s => `
+    <div class="session-card" onclick="showSessionDetail('${s.id}')">
+      <div class="session-header">
+        <div>
+          <div class="session-date">${s.date}</div>
+          <div style="font-size:12px; color:var(--text-light); margin-top:2px;">${s.intakes.length} Einnahme(n)</div>
+        </div>
+        <div class="session-duration">⏱ ${formatDuration(s.duration)}</div>
+      </div>
+      <div class="session-stats">
+        <div class="stat-box">
+          <div class="stat-value">${s.totals.kcal}</div>
+          <div class="stat-unit">kcal</div>
+          <div class="stat-label">Kalorien</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-value">${s.totals.carbs}g</div>
+          <div class="stat-unit">KH</div>
+          <div class="stat-label">Kohlenhydrate</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-value">${s.totals.sodium}</div>
+          <div class="stat-unit">mg</div>
+          <div class="stat-label">Natrium</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-value">${s.totals.fluid}</div>
+          <div class="stat-unit">ml</div>
+          <div class="stat-label">Flüssigkeit</div>
+        </div>
+      </div>
+      ${s.comment ? `<div class="session-comment">💬 ${s.comment}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+function showSessionDetail(id) {
+  const sessions = loadSessions();
+  const s = sessions.find(x => x.id == id);
+  if (!s) return;
+
+  document.getElementById('detail-title').textContent = `Session – ${s.date}`;
+  document.getElementById('detail-content').innerHTML = `
+    <div style="font-size:13px; color:var(--text-light); margin-bottom:12px;">Dauer: ${formatDuration(s.duration)}</div>
+    <div class="session-stats">
+      <div class="stat-box">
+        <div class="stat-value">${s.totals.kcal}</div>
+        <div class="stat-unit">kcal</div>
+        <div class="stat-label">Kalorien</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value">${s.totals.carbs}g</div>
+        <div class="stat-unit">KH</div>
+        <div class="stat-label">Kohlenhydrate</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value">${s.totals.sodium}</div>
+        <div class="stat-unit">mg</div>
+        <div class="stat-label">Natrium</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value">${s.totals.fluid}</div>
+        <div class="stat-unit">ml</div>
+        <div class="stat-label">Flüssigkeit</div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div style="font-weight:700; font-size:13px; margin-bottom:10px; color:var(--text-light);">EINNAHMEN</div>
+    ${s.intakes.length === 0
+      ? '<div style="font-size:13px; color:var(--text-light);">Keine Einnahmen erfasst</div>'
+      : s.intakes.map(i => `
+        <div style="display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--border);">
+          <div style="font-size:20px;">${categoryIcon(i.category)}</div>
+          <div style="flex:1;">
+            <div style="font-weight:600; font-size:14px;">${i.name}</div>
+            <div style="font-size:12px; color:var(--text-light);">${i.kcal} kcal · ${i.carbs}g KH · ${i.fluid > 0 ? i.fluid + 'ml' : ''}</div>
+          </div>
+          <div style="font-size:12px; color:var(--text-light); font-weight:600;">${i.time}</div>
+        </div>
+      `).join('')
+    }
+    ${s.comment ? `<div class="session-comment" style="margin-top:12px;">💬 ${s.comment}</div>` : ''}
+  `;
+  openModal('modal-session-detail');
+}
+
+// ═══════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════
+
+function categoryIcon(cat) {
+  return { gel: '🍯', drink: '🥤', bar: '🍫' }[cat] || '📦';
+}
+
+function formatDuration(seconds) {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) overlay.classList.remove('open');
+  });
+});
+
+// Init
+renderCatalog('alle');
+</script>
+</body>
+</html>
